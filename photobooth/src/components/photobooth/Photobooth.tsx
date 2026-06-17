@@ -256,6 +256,18 @@ export function Photobooth({
     setShowPreview(true);
   }, []);
 
+  const handleSaveEdits = useCallback(
+    (newPhotos: string[], newFrame: PhotoFrame | null, newOrientation: StripOrientation, newLabel: string) => {
+      setEditedPhotos(newPhotos);
+      if (onUpdateFrame && newFrame?.id !== frame?.id) {
+        onUpdateFrame(newFrame);
+      }
+      setStripOrientation(newOrientation);
+      setCustomLabel(newLabel);
+    },
+    [frame, onUpdateFrame]
+  );
+
   const isBusy = isCapturing || countdown.isActive || isCompositing;
 
   return (
@@ -374,12 +386,7 @@ export function Photobooth({
         <PhotoPreview
           photos={capturedPhotos}
           editedPhotos={editedPhotos.length > 0 ? editedPhotos : capturedPhotos}
-          onSaveEdits={(newPhotos, newFrame, newOrientation, newLabel) => {
-            setEditedPhotos(newPhotos);
-            if (onUpdateFrame) onUpdateFrame(newFrame);
-            setStripOrientation(newOrientation);
-            setCustomLabel(newLabel);
-          }}
+          onSaveEdits={handleSaveEdits}
           mode={mode}
           onClose={() => setShowPreview(false)}
           onRetake={handleRetake}

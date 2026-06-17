@@ -84,6 +84,13 @@ export function PhotoPreview({
     setLocalOrientation(stripOrientation);
   }, [stripOrientation]);
 
+  // Sync localEditedPhotos with editedPhotos prop when prop changes
+  useEffect(() => {
+    if (editedPhotos && editedPhotos.length > 0) {
+      setLocalEditedPhotos(editedPhotos);
+    }
+  }, [editedPhotos]);
+
   // Ensure localOrientation is valid for the current frame
   useEffect(() => {
     if (localFrame?.supportedOrientations && !localFrame.supportedOrientations.includes(localOrientation)) {
@@ -702,7 +709,7 @@ export function PhotoPreview({
               </button>
               
               {showSettings && (
-                <div className="mt-3 space-y-5 p-3 bg-booth-dark/50 border border-booth-border/30 rounded-xl animate-fade-in text-left">
+                <div className="mt-3 space-y-5 p-3 bg-booth-dark/50 border border-booth-border/30 rounded-xl animate-fade-in text-left max-w-xl mx-auto w-full">
 
                   {/* 1. Ubah Tipe Frame — Prominent */}
                   <div className="space-y-2">

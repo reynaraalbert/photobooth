@@ -13,14 +13,14 @@ interface FilterPreset {
 
 export const FILTER_PRESETS: FilterPreset[] = [
   { id: "normal",   name: "Normal",   icon: "○", css: "" },
-  { id: "warm",     name: "Warm",     icon: "☀", css: "sepia(0.25) saturate(1.4) hue-rotate(-8deg)" },
-  { id: "cool",     name: "Cool",     icon: "❄", css: "saturate(0.85) hue-rotate(20deg)" },
+  { id: "warm",     name: "Warm",     icon: "☀", css: "sepia(0.25) saturate(1.4) hue-rotate(352deg)" },
+  { id: "cool",     name: "Cool",     icon: "❄", css: "sepia(0.3) saturate(1.3) hue-rotate(190deg)" },
   { id: "bw",       name: "B&W",      icon: "◑", css: "grayscale(1)" },
   { id: "sepia",    name: "Sepia",    icon: "🟤", css: "sepia(0.85)" },
   { id: "fade",     name: "Fade",     icon: "◻", css: "saturate(0.45) contrast(0.85)" },
   { id: "vivid",    name: "Vivid",    icon: "◉", css: "saturate(1.9) contrast(1.08)" },
   { id: "vintage",  name: "Vintage",  icon: "📜", css: "sepia(0.45) saturate(0.85) contrast(0.9)" },
-  { id: "romantic", name: "Romantic", icon: "♥", css: "sepia(0.15) saturate(1.6) hue-rotate(-12deg)" },
+  { id: "romantic", name: "Romantic", icon: "♥", css: "sepia(0.15) saturate(1.6) hue-rotate(348deg)" },
   { id: "dreamy",   name: "Dreamy",   icon: "✦", css: "saturate(1.25) hue-rotate(5deg) contrast(0.9)" },
 ];
 
@@ -301,207 +301,208 @@ export function PhotoEditor({ photoUrl, onSave, onClose }: PhotoEditorProps) {
 
       {/* Controls panel */}
       <div className="flex-shrink-0 bg-booth-dark border-t border-booth-border space-y-0 pb-safe">
-        
-        {/* Tab Selector */}
-        <div className="flex border-b border-booth-border/30 bg-booth-dark/50">
-          <button
-            type="button"
-            onClick={() => setEditorMode("manual")}
-            className={[
-              "flex-1 py-3.5 text-xs font-mono tracking-wider uppercase border-b-2 transition-all font-semibold",
-              editorMode === "manual"
-                ? "border-booth-accent text-booth-accent"
-                : "border-transparent text-booth-muted hover:text-booth-warm",
-            ].join(" ")}
-          >
-            Filter Manual
-          </button>
-          <button
-            type="button"
-            onClick={() => setEditorMode("beautycam")}
-            className={[
-              "flex-1 py-3.5 text-xs font-mono tracking-wider uppercase border-b-2 transition-all font-semibold flex items-center justify-center gap-1.5",
-              editorMode === "beautycam"
-                ? "border-booth-accent text-booth-accent"
-                : "border-transparent text-booth-muted hover:text-booth-warm",
-            ].join(" ")}
-          >
-            <span className="text-[10px] animate-pulse">✨</span> AI Beautycam
-          </button>
-        </div>
-
-        {editorMode === "manual" ? (
-          <div className="space-y-4 pt-1">
-            {/* Filter presets — horizontal scroll */}
-            <div
-              ref={filterRowRef}
-              className="flex gap-2 overflow-x-auto py-4 px-4 scrollbar-none"
-              style={{ scrollbarWidth: "none" }}
+        <div className="max-w-xl mx-auto w-full">
+          {/* Tab Selector */}
+          <div className="flex border-b border-booth-border/30 bg-booth-dark/50">
+            <button
+              type="button"
+              onClick={() => setEditorMode("manual")}
+              className={[
+                "flex-1 py-3.5 text-xs font-mono tracking-wider uppercase border-b-2 transition-all font-semibold",
+                editorMode === "manual"
+                  ? "border-booth-accent text-booth-accent"
+                  : "border-transparent text-booth-muted hover:text-booth-warm",
+              ].join(" ")}
             >
-              {FILTER_PRESETS.map((f) => {
-                const isActive = activeFilter === f.id;
-                return (
-                  <button
-                    key={f.id}
-                    id={`filter-${f.id}-btn`}
-                    onClick={() => setActiveFilter(f.id)}
-                    className={[
-                      "flex flex-col items-center gap-1.5 flex-shrink-0 w-14 transition-all duration-200",
-                      isActive ? "opacity-100" : "opacity-50 hover:opacity-75",
-                    ].join(" ")}
-                  >
-                    {/* Thumbnail with filter */}
-                    <div
+              Filter Manual
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditorMode("beautycam")}
+              className={[
+                "flex-1 py-3.5 text-xs font-mono tracking-wider uppercase border-b-2 transition-all font-semibold flex items-center justify-center gap-1.5",
+                editorMode === "beautycam"
+                  ? "border-booth-accent text-booth-accent"
+                  : "border-transparent text-booth-muted hover:text-booth-warm",
+              ].join(" ")}
+            >
+              <span className="text-[10px] animate-pulse">✨</span> AI Beautycam
+            </button>
+          </div>
+
+          {editorMode === "manual" ? (
+            <div className="space-y-4 pt-1">
+              {/* Filter presets — horizontal scroll */}
+              <div
+                ref={filterRowRef}
+                className="flex gap-2 overflow-x-auto py-4 px-4 scrollbar-none"
+                style={{ scrollbarWidth: "none" }}
+              >
+                {FILTER_PRESETS.map((f) => {
+                  const isActive = activeFilter === f.id;
+                  return (
+                    <button
+                      key={f.id}
+                      id={`filter-${f.id}-btn`}
+                      onClick={() => setActiveFilter(f.id)}
                       className={[
-                        "w-12 h-12 rounded-lg overflow-hidden border-2 transition-all",
-                        isActive ? "border-booth-accent" : "border-booth-border",
+                        "flex flex-col items-center gap-1.5 flex-shrink-0 w-14 transition-all duration-200",
+                        isActive ? "opacity-100" : "opacity-50 hover:opacity-75",
                       ].join(" ")}
                     >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={basePhotoUrl}
-                        alt={f.name}
-                        className="w-full h-full object-cover"
-                        style={{ filter: f.css || "none" }}
-                        draggable={false}
-                      />
-                    </div>
-                    <span
-                      className={`text-[9px] font-mono tracking-wide leading-none ${isActive ? "text-booth-accent" : "text-booth-muted"}`}
-                    >
-                      {f.name}
+                      {/* Thumbnail with filter */}
+                      <div
+                        className={[
+                          "w-12 h-12 rounded-lg overflow-hidden border-2 transition-all",
+                          isActive ? "border-booth-accent" : "border-booth-border",
+                        ].join(" ")}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={basePhotoUrl}
+                          alt={f.name}
+                          className="w-full h-full object-cover"
+                          style={{ filter: f.css || "none" }}
+                          draggable={false}
+                        />
+                      </div>
+                      <span
+                        className={`text-[9px] font-mono tracking-wide leading-none ${isActive ? "text-booth-accent" : "text-booth-muted"}`}
+                      >
+                        {f.name}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Sliders */}
+              <div className="px-4 pb-4 space-y-3">
+                {/* Brightness */}
+                <div className="flex items-center gap-3">
+                  <span className="text-booth-muted text-[11px] font-mono w-20 text-right shrink-0">
+                    Kecerahan{" "}
+                    <span className={brightness !== 0 ? "text-booth-accent" : ""}>
+                      {brightness > 0 ? `+${brightness}` : brightness}
                     </span>
+                  </span>
+                  <input
+                    id="brightness-slider"
+                    type="range"
+                    min={-50}
+                    max={50}
+                    value={brightness}
+                    onChange={(e) => setBrightness(Number(e.target.value))}
+                    className="flex-1 accent-[#C8A96E] h-1 rounded-full bg-booth-border cursor-pointer"
+                  />
+                  <button
+                    onClick={() => setBrightness(0)}
+                    className="text-[10px] text-booth-muted hover:text-booth-warm font-mono shrink-0"
+                  >
+                    Reset
                   </button>
-                );
-              })}
-            </div>
+                </div>
 
-            {/* Sliders */}
-            <div className="px-4 pb-4 space-y-3">
-              {/* Brightness */}
-              <div className="flex items-center gap-3">
-                <span className="text-booth-muted text-[11px] font-mono w-20 text-right shrink-0">
-                  Kecerahan{" "}
-                  <span className={brightness !== 0 ? "text-booth-accent" : ""}>
-                    {brightness > 0 ? `+${brightness}` : brightness}
+                {/* Contrast */}
+                <div className="flex items-center gap-3">
+                  <span className="text-booth-muted text-[11px] font-mono w-20 text-right shrink-0">
+                    Kontras{" "}
+                    <span className={contrast !== 0 ? "text-booth-accent" : ""}>
+                      {contrast > 0 ? `+${contrast}` : contrast}
+                    </span>
                   </span>
-                </span>
-                <input
-                  id="brightness-slider"
-                  type="range"
-                  min={-50}
-                  max={50}
-                  value={brightness}
-                  onChange={(e) => setBrightness(Number(e.target.value))}
-                  className="flex-1 accent-[#C8A96E] h-1 rounded-full bg-booth-border cursor-pointer"
-                />
-                <button
-                  onClick={() => setBrightness(0)}
-                  className="text-[10px] text-booth-muted hover:text-booth-warm font-mono shrink-0"
-                >
-                  Reset
-                </button>
-              </div>
+                  <input
+                    id="contrast-slider"
+                    type="range"
+                    min={-50}
+                    max={50}
+                    value={contrast}
+                    onChange={(e) => setContrast(Number(e.target.value))}
+                    className="flex-1 accent-[#C8A96E] h-1 rounded-full bg-booth-border cursor-pointer"
+                  />
+                  <button
+                    onClick={() => setContrast(0)}
+                    className="text-[10px] text-booth-muted hover:text-booth-warm font-mono shrink-0"
+                  >
+                    Reset
+                  </button>
+                </div>
 
-              {/* Contrast */}
-              <div className="flex items-center gap-3">
-                <span className="text-booth-muted text-[11px] font-mono w-20 text-right shrink-0">
-                  Kontras{" "}
-                  <span className={contrast !== 0 ? "text-booth-accent" : ""}>
-                    {contrast > 0 ? `+${contrast}` : contrast}
-                  </span>
-                </span>
-                <input
-                  id="contrast-slider"
-                  type="range"
-                  min={-50}
-                  max={50}
-                  value={contrast}
-                  onChange={(e) => setContrast(Number(e.target.value))}
-                  className="flex-1 accent-[#C8A96E] h-1 rounded-full bg-booth-border cursor-pointer"
-                />
-                <button
-                  onClick={() => setContrast(0)}
-                  className="text-[10px] text-booth-muted hover:text-booth-warm font-mono shrink-0"
-                >
-                  Reset
-                </button>
+                {/* Reset all */}
+                {(activeFilter !== "normal" || brightness !== 0 || contrast !== 0 || basePhotoUrl !== photoUrl) && (
+                  <button
+                    onClick={() => {
+                      setBasePhotoUrl(photoUrl);
+                      setActiveFilter("normal");
+                      setBrightness(0);
+                      setContrast(0);
+                    }}
+                    className="w-full text-center text-[11px] font-mono text-booth-muted hover:text-booth-warm transition-colors"
+                  >
+                    Reset semua perubahan
+                  </button>
+                )}
               </div>
-
-              {/* Reset all */}
-              {(activeFilter !== "normal" || brightness !== 0 || contrast !== 0 || basePhotoUrl !== photoUrl) && (
-                <button
-                  onClick={() => {
-                    setBasePhotoUrl(photoUrl);
-                    setActiveFilter("normal");
-                    setBrightness(0);
-                    setContrast(0);
-                  }}
-                  className="w-full text-center text-[11px] font-mono text-booth-muted hover:text-booth-warm transition-colors"
-                >
-                  Reset semua perubahan
-                </button>
-              )}
             </div>
-          </div>
-        ) : (
-          /* AI Beautycam Action Panel */
-          <div className="p-5 grid grid-cols-3 gap-3 animate-fade-in bg-booth-black/20">
-            {/* AI Retouch */}
-            <button
-              type="button"
-              onClick={() => handleApplyAI("retouch")}
-              disabled={isAIProcessing}
-              className="flex flex-col items-center gap-2 p-3.5 rounded-xl border border-booth-border/50 hover:border-booth-accent/50 hover:bg-booth-accent/5 transition-all group active:scale-95 disabled:opacity-40"
-            >
-              <div className="w-10 h-10 rounded-full bg-pink-500/10 flex items-center justify-center text-pink-400 group-hover:scale-110 transition-transform">
-                <span className="text-xl">✨</span>
-              </div>
-              <span className="text-[10px] font-mono font-bold text-booth-warm uppercase tracking-wider text-center">
-                AI Retouch
-              </span>
-              <span className="text-[8px] font-mono text-booth-muted text-center leading-tight">
-                Retouch Wajah
-              </span>
-            </button>
+          ) : (
+            /* AI Beautycam Action Panel */
+            <div className="p-5 grid grid-cols-3 gap-3 animate-fade-in bg-booth-black/20">
+              {/* AI Retouch */}
+              <button
+                type="button"
+                onClick={() => handleApplyAI("retouch")}
+                disabled={isAIProcessing}
+                className="flex flex-col items-center gap-2 p-3.5 rounded-xl border border-booth-border/50 hover:border-booth-accent/50 hover:bg-booth-accent/5 transition-all group active:scale-95 disabled:opacity-40"
+              >
+                <div className="w-10 h-10 rounded-full bg-pink-500/10 flex items-center justify-center text-pink-400 group-hover:scale-110 transition-transform">
+                  <span className="text-xl">✨</span>
+                </div>
+                <span className="text-[10px] font-mono font-bold text-booth-warm uppercase tracking-wider text-center">
+                  AI Retouch
+                </span>
+                <span className="text-[8px] font-mono text-booth-muted text-center leading-tight">
+                  Retouch Wajah
+                </span>
+              </button>
 
-            {/* AI Cartoon */}
-            <button
-              type="button"
-              onClick={() => handleApplyAI("cartoon")}
-              disabled={isAIProcessing}
-              className="flex flex-col items-center gap-2 p-3.5 rounded-xl border border-booth-border/50 hover:border-booth-accent/50 hover:bg-booth-accent/5 transition-all group active:scale-95 disabled:opacity-40"
-            >
-              <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
-                <span className="text-xl">🎨</span>
-              </div>
-              <span className="text-[10px] font-mono font-bold text-booth-warm uppercase tracking-wider text-center">
-                AI Cartoon
-              </span>
-              <span className="text-[8px] font-mono text-booth-muted text-center leading-tight">
-                Sketsa Seni
-              </span>
-            </button>
+              {/* AI Cartoon */}
+              <button
+                type="button"
+                onClick={() => handleApplyAI("cartoon")}
+                disabled={isAIProcessing}
+                className="flex flex-col items-center gap-2 p-3.5 rounded-xl border border-booth-border/50 hover:border-booth-accent/50 hover:bg-booth-accent/5 transition-all group active:scale-95 disabled:opacity-40"
+              >
+                <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
+                  <span className="text-xl">🎨</span>
+                </div>
+                <span className="text-[10px] font-mono font-bold text-booth-warm uppercase tracking-wider text-center">
+                  AI Cartoon
+                </span>
+                <span className="text-[8px] font-mono text-booth-muted text-center leading-tight">
+                  Sketsa Seni
+                </span>
+              </button>
 
-            {/* AI Cutout */}
-            <button
-              type="button"
-              onClick={() => handleApplyAI("cutout")}
-              disabled={isAIProcessing}
-              className="flex flex-col items-center gap-2 p-3.5 rounded-xl border border-booth-border/50 hover:border-booth-accent/50 hover:bg-booth-accent/5 transition-all group active:scale-95 disabled:opacity-40"
-            >
-              <div className="w-10 h-10 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
-                <span className="text-xl">👤</span>
-              </div>
-              <span className="text-[10px] font-mono font-bold text-booth-warm uppercase tracking-wider text-center">
-                AI Cutout
-              </span>
-              <span className="text-[8px] font-mono text-booth-muted text-center leading-tight">
-                Hapus Latar
-              </span>
-            </button>
-          </div>
-        )}
+              {/* AI Cutout */}
+              <button
+                type="button"
+                onClick={() => handleApplyAI("cutout")}
+                disabled={isAIProcessing}
+                className="flex flex-col items-center gap-2 p-3.5 rounded-xl border border-booth-border/50 hover:border-booth-accent/50 hover:bg-booth-accent/5 transition-all group active:scale-95 disabled:opacity-40"
+              >
+                <div className="w-10 h-10 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
+                  <span className="text-xl">👤</span>
+                </div>
+                <span className="text-[10px] font-mono font-bold text-booth-warm uppercase tracking-wider text-center">
+                  AI Cutout
+                </span>
+                <span className="text-[8px] font-mono text-booth-muted text-center leading-tight">
+                  Hapus Latar
+                </span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
