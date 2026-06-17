@@ -132,6 +132,14 @@ export function PhotoPreview({
   const [cloudShareUrl, setCloudShareUrl] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  const currentStripFilterCSS = (() => {
+    const preset = FILTER_PRESETS.find((f) => f.id === stripFilter) ?? FILTER_PRESETS[0];
+    const parts = [preset.css];
+    if (stripBrightness !== 0) parts.push(`brightness(${(1 + stripBrightness / 100).toFixed(2)})`);
+    if (stripContrast !== 0) parts.push(`contrast(${(1 + stripContrast / 100).toFixed(2)})`);
+    return parts.filter(Boolean).join(" ");
+  })();
+
   const handleSaveToCloud = useCallback(async () => {
     setIsSavingToCloud(true);
     setSaveError(null);
@@ -406,6 +414,7 @@ export function PhotoPreview({
         stripUrl={stripDataUrl}
         onClose={() => setShowStripZoom(false)}
         isPortrait={mode === "strip" && currentOrientation === "portrait"}
+        filterCSS={currentStripFilterCSS}
       />
     );
   }
@@ -566,6 +575,7 @@ export function PhotoPreview({
                   }}
                   onStripClick={() => setShowStripZoom(true)}
                   frame={currentFrame}
+                  filterCSS={currentStripFilterCSS}
                 />
               ) : (
                 /* Single photo — clickable */
@@ -1134,6 +1144,7 @@ interface StripPreviewProps {
   onThumbnailClick: (index: number) => void;
   onStripClick: () => void;
   frame: PhotoFrame | null;
+  filterCSS?: string;
 }
 
 function StripPreview({
@@ -1144,6 +1155,7 @@ function StripPreview({
   onThumbnailClick,
   onStripClick,
   frame,
+  filterCSS,
 }: StripPreviewProps) {
   if (isComposing) {
     return (
@@ -1163,7 +1175,12 @@ function StripPreview({
           className="relative w-full rounded-lg overflow-hidden border border-booth-border bg-booth-dark flex justify-center group cursor-zoom-in"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={stripUrl} alt="Photo strip" className="max-h-[40vh] w-auto object-contain" />
+          <img 
+            src={stripUrl} 
+            alt="Photo strip" 
+            className="max-h-[40vh] w-auto object-contain" 
+            style={{ filter: filterCSS || "none" }}
+          />
           <div className="absolute inset-0 bg-booth-black/0 group-hover:bg-booth-black/25 transition-all flex items-center justify-center">
             <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-booth-black/70 backdrop-blur-sm rounded-full px-3 py-1.5">
               <span className="text-booth-warm text-[11px] font-mono">Lihat penuh</span>
@@ -1182,7 +1199,12 @@ function StripPreview({
             title={`Edit foto ${i + 1}`}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={framedPhotos[i] || photo} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
+            <img 
+              src={framedPhotos[i] || photo} 
+              alt={`Photo ${i + 1}`} 
+              className="w-full h-full object-cover" 
+              style={{ filter: filterCSS || "none" }}
+            />
             
             <div className="absolute inset-0 bg-booth-black/0 group-hover:bg-booth-black/40 transition-all flex items-center justify-center z-20">
               <div className="opacity-0 group-hover:opacity-100 transition-opacity">
@@ -1212,9 +1234,10 @@ interface StripZoomModalProps {
   stripUrl: string;
   onClose: () => void;
   isPortrait: boolean;
+  filterCSS?: string;
 }
 
-function StripZoomModal({ stripUrl, onClose, isPortrait }: StripZoomModalProps) {
+function StripZoomModal({ stripUrl, onClose, isPortrait, filterCSS }: StripZoomModalProps) {
   return (
     <div className="fixed inset-0 z-[55] flex flex-col bg-black">
       {/* Top bar */}
@@ -1253,6 +1276,7 @@ function StripZoomModal({ stripUrl, onClose, isPortrait }: StripZoomModalProps) 
             src={stripUrl}
             alt="Full size photo strip"
             className="max-w-full max-h-full object-contain"
+            style={{ filter: filterCSS || "none" }}
             draggable={false}
           />
         </div>
