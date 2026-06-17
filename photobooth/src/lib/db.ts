@@ -1,19 +1,54 @@
 import { collection, getDocs, doc, setDoc, deleteDoc } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import type { PhotoFrame } from "@/types/photobooth";
-import { db, storage } from "./firebase";
+import { db } from "./firebase";
 
-// Helper to convert dataURL (base64) to Blob
-function dataURLtoBlob(dataUrl: string): Blob {
-  const arr = dataUrl.split(",");
-  const mime = arr[0].match(/:(.*?);/)?.[1] || "image/png";
-  const bstr = atob(arr[1]);
-  let n = bstr.length;
-  const u8arr = new Uint8Array(n);
-  while (n--) {
-    u8arr[n] = bstr.charCodeAt(n);
-  }
-  return new Blob([u8arr], { type: mime });
+// Helper to compress base64 images on the client side before saving to Firestore (1MB limit)
+function compressBase64Image(
+  dataUrl: string,
+  maxWidth = 800,
+  maxHeight = 800,
+  quality = 0.7
+): Promise<string> {
+  return new Promise((resolve) => {
+    if (typeof window === "undefined" || !dataUrl.startsWith("data:image")) {
+      resolve(dataUrl);
+      return;
+    }
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      let w = img.naturalWidth;
+      let h = img.naturalHeight;
+
+      // Resize if exceeds boundaries
+      if (w > maxWidth || h > maxHeight) {
+        if (w > h) {
+          h = Math.round((h * maxWidth) / w);
+          w = maxWidth;
+        } else {
+          w = Math.round((w * maxHeight) / h);
+          h = maxHeight;
+        }
+      }
+
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        resolve(dataUrl);
+        return;
+      }
+      ctx.drawImage(img, 0, 0, w, h);
+
+      // Keep PNG format for frames to preserve transparency, use JPEG for photos to reduce size
+      const isPng = dataUrl.includes("image/png");
+      const format = isPng ? "image/png" : "image/jpeg";
+      resolve(canvas.toDataURL(format, isPng ? undefined : quality));
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
 }
 
 // 1. Get all custom frames from Firestore
@@ -31,69 +66,42 @@ export async function getCustomFrames(): Promise<PhotoFrame[]> {
   }
 }
 
-// 2. Upload frame image to Firebase Storage and save metadata to Firestore
+// 2. Save custom frame directly to Firestore as compressed Base64 text
 export async function saveCustomFrame(frame: PhotoFrame): Promise<void> {
   try {
-    let finalImageUrl = frame.imageUrl;
-    let finalThumbnailUrl = frame.thumbnailUrl || frame.imageUrl;
-
-    // Upload main image if it is a base64 data URL
-    if (frame.imageUrl.startsWith("data:")) {
-      const blob = dataURLtoBlob(frame.imageUrl);
-      const storageRef = ref(storage, `custom-frames/${frame.id}`);
-      await uploadBytes(storageRef, blob);
-      finalImageUrl = await getDownloadURL(storageRef);
-    }
-
-    // Upload thumbnail image if it is a base64 data URL
-    if (frame.thumbnailUrl && frame.thumbnailUrl.startsWith("data:")) {
-      const blob = dataURLtoBlob(frame.thumbnailUrl);
-      const storageRef = ref(storage, `custom-frames/${frame.id}-thumb`);
-      await uploadBytes(storageRef, blob);
-      finalThumbnailUrl = await getDownloadURL(storageRef);
-    } else if (frame.imageUrl.startsWith("data:")) {
-      // If imageUrl was uploaded, use it as thumbnailUrl too
-      finalThumbnailUrl = finalImageUrl;
+    // Compress main image (keep PNG for transparency, but limit size)
+    const compressedImageUrl = await compressBase64Image(frame.imageUrl, 800, 800, 0.7);
+    
+    let compressedThumbnailUrl = compressedImageUrl;
+    if (frame.thumbnailUrl) {
+      compressedThumbnailUrl = await compressBase64Image(frame.thumbnailUrl, 200, 200, 0.6);
     }
 
     const updatedFrame: PhotoFrame = {
       ...frame,
-      imageUrl: finalImageUrl,
-      thumbnailUrl: finalThumbnailUrl,
+      imageUrl: compressedImageUrl,
+      thumbnailUrl: compressedThumbnailUrl,
     };
 
-    // Save metadata to Firestore
+    // Save directly to Firestore as text (no Storage needed!)
     await setDoc(doc(db, "custom-frames", frame.id), updatedFrame);
   } catch (error) {
-    console.error("Error saving custom frame to Firebase:", error);
+    console.error("Error saving custom frame to Firestore:", error);
     throw error;
   }
 }
 
-// 3. Delete frame metadata from Firestore and delete image from Storage
+// 3. Delete frame metadata from Firestore
 export async function deleteCustomFrame(id: string): Promise<void> {
   try {
-    // Delete Firestore document
     await deleteDoc(doc(db, "custom-frames", id));
-
-    // Delete image from Storage (ignore if not exists)
-    const storageRef = ref(storage, `custom-frames/${id}`);
-    await deleteObject(storageRef).catch((err) => {
-      console.warn("Storage deletion warning (might not exist):", err);
-    });
-
-    // Delete thumbnail from Storage (ignore if not exists)
-    const thumbRef = ref(storage, `custom-frames/${id}-thumb`);
-    await deleteObject(thumbRef).catch((err) => {
-      // Ignored
-    });
   } catch (error) {
-    console.error("Error deleting custom frame from Firebase:", error);
+    console.error("Error deleting custom frame from Firestore:", error);
     throw error;
   }
 }
 
-// 4. Save a captured photobooth session (photos and composed strip) to Firebase
+// 4. Save captured photos and photostrip directly to Firestore as compressed Base64 text
 export async function saveCapturedSession(
   mode: "single" | "strip",
   photos: string[], // Base64 data URLs
@@ -102,41 +110,31 @@ export async function saveCapturedSession(
   try {
     const sessionId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-    // Upload individual photos to Firebase Storage
-    const uploadedPhotoUrls = await Promise.all(
-      photos.map(async (photo, idx) => {
-        if (!photo.startsWith("data:")) return photo;
-        const blob = dataURLtoBlob(photo);
-        const photoRef = ref(storage, `sessions/${sessionId}/photo-${idx}.jpg`);
-        await uploadBytes(photoRef, blob);
-        return await getDownloadURL(photoRef);
-      })
+    // Compress individual photos to small JPEGs to fit Firestore 1MB limit
+    const compressedPhotos = await Promise.all(
+      photos.map((photo) => compressBase64Image(photo, 600, 450, 0.6))
     );
 
-    // Upload composed strip if in strip mode
-    let uploadedStripUrl = "";
-    if (mode === "strip" && stripUrl && stripUrl.startsWith("data:")) {
-      const blob = dataURLtoBlob(stripUrl);
-      const stripRef = ref(storage, `sessions/${sessionId}/strip.png`);
-      await uploadBytes(stripRef, blob);
-      uploadedStripUrl = await getDownloadURL(stripRef);
+    // Compress finalized photostrip to a small JPEG
+    let compressedStripUrl = "";
+    if (mode === "strip" && stripUrl) {
+      compressedStripUrl = await compressBase64Image(stripUrl, 600, 1000, 0.6);
     } else {
-      // For single photo mode, the main URL is the first captured photo
-      uploadedStripUrl = uploadedPhotoUrls[0] || "";
+      compressedStripUrl = compressedPhotos[0] || "";
     }
 
-    // Save session metadata to Firestore
+    // Save session directly to Firestore (no Storage needed!)
     await setDoc(doc(db, "sessions", sessionId), {
       id: sessionId,
       mode,
-      stripUrl: uploadedStripUrl,
-      photoUrls: uploadedPhotoUrls,
+      stripUrl: compressedStripUrl,
+      photoUrls: compressedPhotos,
       createdAt: new Date().toISOString(),
     });
 
     return sessionId;
   } catch (error) {
-    console.error("Error saving captured session to Firebase:", error);
+    console.error("Error saving captured session to Firestore:", error);
     throw error;
   }
 }
