@@ -1,0 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: 'DM Serif Display';
+  --font-body: 'DM Sans';
+  --font-mono: 'DM Mono';
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  background-color: #0A0A0F;
+}
+
+/* Prevent iOS bounce scroll */
+body {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Remove default button styles */
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Video element: prevent grey flash on iOS */
+video {
+  background-color: #0A0A0F;
+}
+
+/* Custom scrollbar for control panel */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 3px;
+}
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #2A2A3E;
+  border-radius: 2px;
+}

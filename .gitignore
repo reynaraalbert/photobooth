@@ -1,0 +1,29 @@
+# dependencies
+/photobooth/node_modules
+/photobooth/.pnp
+/photobooth/.pnp.js
+
+# testing
+/photobooth/coverage
+
+# next.js
+/photobooth/.next/
+/photobooth/out/
+
+# production
+/photobooth/build
+
+# misc
+/photobooth/.DS_Store
+/photobooth/*.pem
+
+# debug
+/photobooth/npm-debug.log*
+/photobooth/yarn-debug.log*
+/photobooth/yarn-error.log*
+
+# local env files
+/photobooth/.env*.local
+
+# typescript
+/photobooth/tsconfig.tsbuildinfo
