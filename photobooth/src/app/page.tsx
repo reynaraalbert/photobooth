@@ -7,13 +7,26 @@ import { WelcomeScreen } from "@/components/photobooth/WelcomeScreen";
 import { FrameSelector } from "@/components/photobooth/FrameSelector";
 import { Photobooth } from "@/components/photobooth/Photobooth";
 import { getCustomFrames, saveCustomFrame, deleteCustomFrame } from "@/lib/db";
+import { auth } from "@/lib/firebase";
+import { signInAnonymously } from "firebase/auth";
 
 export default function Home() {
   const [stage, setStage] = useState<AppStage>("loading");
   const [selectedFrame, setSelectedFrame] = useState<PhotoFrame | null>(null);
   const [customFrames, setCustomFrames] = useState<PhotoFrame[]>([]);
 
-  // Load custom frames from IndexedDB on mount
+  // Authenticate anonymously on mount
+  useEffect(() => {
+    signInAnonymously(auth)
+      .then((userCredential) => {
+        console.log("Authenticated anonymously as:", userCredential.user.uid);
+      })
+      .catch((err) => {
+        console.error("Gagal melakukan login anonim:", err);
+      });
+  }, []);
+
+  // Load custom frames from database on mount
   useEffect(() => {
     getCustomFrames()
       .then((frames) => {

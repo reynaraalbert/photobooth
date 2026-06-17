@@ -10,6 +10,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "firebase": "^12.15.0",
     "gifenc": "^1.0.3",
     "html-to-image": "^1.11.11",
     "lucide-react": "^0.383.0",
